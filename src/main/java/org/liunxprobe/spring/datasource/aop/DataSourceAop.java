@@ -1,13 +1,20 @@
 package org.liunxprobe.spring.datasource.aop;
 
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.lang3.StringUtils;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
 import org.liunxprobe.spring.datasource.MultiDataSource;
+import org.liunxprobe.spring.datasource.annotation.DataSource;
 
 import lombok.NoArgsConstructor;
 
 @NoArgsConstructor
+@Aspect
 public class DataSourceAop {
 	private MultiDataSource multiDataSource;
 
@@ -24,7 +31,15 @@ public class DataSourceAop {
 		if (this.multiDataSource == null) {
 			throw new IllegalArgumentException("multiDataSource can not be null");
 		}
-		this.multiDataSource.markMaster();
+		DataSource dataSource = ((MethodSignature) joinPoint.getSignature()).getMethod()
+				.getAnnotation(DataSource.class);
+		if (StringUtils.isNoneBlank(dataSource.value())) {
+			this.multiDataSource.markByKey(dataSource.value());
+		} else if (dataSource.slave()) {
+			this.multiDataSource.markSlave();
+		} else {
+			this.multiDataSource.markMaster();
+		}
 		Object result = null;
 		try {
 			result = joinPoint.proceed();
@@ -45,5 +60,12 @@ public class DataSourceAop {
 			throw new IllegalArgumentException("multiDataSource can not be null");
 		}
 		this.multiDataSource = multiDataSource;
+	}
+
+	@PostConstruct
+	public void init() {
+		if (multiDataSource == null) {
+			throw new IllegalArgumentException("multiDataSource can not be null");
+		}
 	}
 }
