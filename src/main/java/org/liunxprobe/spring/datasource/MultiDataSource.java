@@ -1,6 +1,7 @@
 package org.liunxprobe.spring.datasource;
 
-import java.util.HashMap;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -11,12 +12,13 @@ import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 public class MultiDataSource extends AbstractRoutingDataSource {
 	private final static String masterKey = "master";
 	private final ThreadLocal<String> contextHolder = new ThreadLocal<String>();
+	private Map<Object, Object> targetDataSources;
 	/** 从库keys */
 	private List<String> slaveDataSourceKeys;
 
 	private int keyIndex = 0;
 
-	public MultiDataSource(HashMap<Object, Object> targetDataSources) {
+	public MultiDataSource(Map<Object, Object> targetDataSources) {
 		if (targetDataSources == null || targetDataSources.isEmpty()) {
 			throw new IllegalArgumentException("targetDataSources can not be null");
 		}
@@ -28,6 +30,7 @@ public class MultiDataSource extends AbstractRoutingDataSource {
 	}
 
 	public void initSlaveDataSourceKeys(Map<Object, Object> targetDataSources) {
+		this.targetDataSources = targetDataSources;
 		slaveDataSourceKeys = new LinkedList<>();
 		Set<Object> keys = targetDataSources.keySet();
 		for (Object key : keys) {
@@ -84,5 +87,19 @@ public class MultiDataSource extends AbstractRoutingDataSource {
 
 	public void clearDataSourceKey() {
 		contextHolder.remove();
+	}
+
+	public String getDriverClassName() {
+		Object dataSource = this.targetDataSources.get(this.getDataSourceKey());
+		String driverClassName = null;
+		Method method;
+		try {
+			method = dataSource.getClass().getMethod("getDriverClassName");
+			driverClassName = (String) method.invoke(dataSource);
+		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
+				| InvocationTargetException e) {
+			throw new RuntimeException(e);
+		}
+		return driverClassName;
 	}
 }
