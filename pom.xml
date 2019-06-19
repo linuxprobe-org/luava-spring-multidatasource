@@ -17,9 +17,9 @@
 	</developers>
 	<scm>
 		<tag>master</tag>
-		<connection>https://github.com/linuxprobe-org/luava-http.git</connection>
+		<connection>https://github.com/linuxprobe-org/luava-spring-multidatasource.git</connection>
 		<developerConnection>https://github.com/linuxprobe-org</developerConnection>
-		<url>https://github.com/linuxprobe-org/luava-http.git</url>
+		<url>https://github.com/linuxprobe-org/luava-spring-multidatasource.git</url>
 	</scm>
 
 	<distributionManagement>
@@ -39,9 +39,9 @@
 	<artifactId>luava-spring-multidatasource</artifactId>
 	<version>0.0.1.RELEASE</version>
 	<packaging>jar</packaging>
-	<name>luava-http</name>
+	<name>luava-spring-multidatasource</name>
 	<description>luava-spring-multidatasource</description>
-	<url>https://github.com/linuxprobe-org/luava-http.git</url>
+	<url>https://github.com/linuxprobe-org/luava-spring-multidatasource.git</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
