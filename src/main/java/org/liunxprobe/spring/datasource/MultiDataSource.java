@@ -7,9 +7,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
 
 public class MultiDataSource extends AbstractRoutingDataSource {
+	private final static Logger logger = LoggerFactory.getLogger(MultiDataSource.class);
 	private final static String masterKey = "master";
 	private final ThreadLocal<String> contextHolder = new ThreadLocal<String>();
 	private Map<Object, Object> targetDataSources;
@@ -29,13 +32,17 @@ public class MultiDataSource extends AbstractRoutingDataSource {
 	public MultiDataSource() {
 	}
 
+	@SuppressWarnings("static-access")
 	public void initSlaveDataSourceKeys(Map<Object, Object> targetDataSources) {
+		if (targetDataSources.get(this.masterKey) == null) {
+			throw new IllegalArgumentException("master datasorce can not be null");
+		}
 		this.targetDataSources = targetDataSources;
-		slaveDataSourceKeys = new LinkedList<>();
+		this.slaveDataSourceKeys = new LinkedList<>();
 		Set<Object> keys = targetDataSources.keySet();
 		for (Object key : keys) {
 			if (!masterKey.equals(key.toString())) {
-				slaveDataSourceKeys.add(key.toString());
+				this.slaveDataSourceKeys.add(key.toString());
 			}
 		}
 	}
@@ -57,14 +64,26 @@ public class MultiDataSource extends AbstractRoutingDataSource {
 	/** 标记主库 */
 	public void markMaster() {
 		contextHolder.set(masterKey);
+		if (logger.isDebugEnabled()) {
+			logger.debug("switch master datasource");
+		}
 	}
 
 	/** 标记从库 */
-	public synchronized void markSlave() {
-		contextHolder.set(this.slaveDataSourceKeys.get(keyIndex));
-		this.keyIndex++;
-		if (keyIndex >= this.slaveDataSourceKeys.size()) {
-			keyIndex = 0;
+	public void markSlave() {
+		if (this.slaveDataSourceKeys == null || this.slaveDataSourceKeys.isEmpty()) {
+			this.markMaster();
+		} else {
+			synchronized (this) {
+				contextHolder.set(this.slaveDataSourceKeys.get(keyIndex));
+				this.keyIndex++;
+				if (keyIndex >= this.slaveDataSourceKeys.size()) {
+					keyIndex = 0;
+				}
+			}
+			if (logger.isDebugEnabled()) {
+				logger.debug("switch {} datasource", contextHolder.get());
+			}
 		}
 	}
 
@@ -74,13 +93,16 @@ public class MultiDataSource extends AbstractRoutingDataSource {
 			throw new IllegalArgumentException("key can not be null");
 		}
 		contextHolder.set(key);
+		if (logger.isDebugEnabled()) {
+			logger.debug("switch {} datasource", key);
+		}
 	}
 
 	public String getDataSourceKey() {
 		String key = contextHolder.get();
 		if (key == null) {
 			key = masterKey;
-			contextHolder.set(masterKey);
+			this.markMaster();
 		}
 		return key;
 	}

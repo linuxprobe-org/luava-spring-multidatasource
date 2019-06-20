@@ -37,7 +37,7 @@
 
 	<groupId>org.linuxprobe</groupId>
 	<artifactId>luava-spring-multidatasource</artifactId>
-	<version>0.0.1.RELEASE</version>
+	<version>0.0.2.RELEASE</version>
 	<packaging>jar</packaging>
 	<name>luava-spring-multidatasource</name>
 	<description>luava-spring-multidatasource</description>
