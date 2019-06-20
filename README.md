@@ -15,19 +15,19 @@ spring:
   datasources:
     # master库必须有,下面的从库可以没有
     master:
-      jdbc-url: jdbc:mysql://127.0.0.1:3306/universal-crud?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+      jdbc-url: jdbc:mysql://127.0.0.1:3306/uni?useUnicode=true&characterEncoding=UTF-8&useSSL=false
       username: root
       password: 123456
       driverClassName: com.mysql.cj.jdbc.Driver
-	# 从库; 从库可以随便起名, 但不能是master
+    # 从库; 从库可以随便起名, 但不能是master
     slave:
-      jdbc-url: jdbc:mysql://192.168.160.2:3306/universal-crud?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+      jdbc-url: jdbc:mysql://192.168.160.2:3306/uni?useUnicode=true&characterEncoding=UTF-8&useSSL=false
       username: root
       password: 123456
       driverClassName: com.mysql.cj.jdbc.Driver
-	# 从库1
+    # 从库1
     slave1:
-      jdbc-url: jdbc:mysql://192.168.160.2:3306/universal-crud?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+      jdbc-url: jdbc:mysql://192.168.160.2:3306/uni?useUnicode=true&characterEncoding=UTF-8&useSSL=false
       username: root
       password: 123456
       driverClassName: com.mysql.cj.jdbc.Driver
@@ -55,19 +55,19 @@ import lombok.Setter;
 public class DataSourceConfiguration {
 	private Map<String, HikariDataSource> datasources;
 
-  // 配置数据源
+        // 配置数据源
 	@SuppressWarnings("unchecked")
 	@Bean
 	public MultiDataSource multiDataSource() {
 		return new MultiDataSource((Map<Object, Object>) ((Map<?, ?>) datasources));
 	}
 
-  // 配置切面
+        // 配置切面
 	@Bean
 	public DataSourceAop dataSourceAop(MultiDataSource multiDataSource) {
 		return new DataSourceAop(multiDataSource);
 	}
-  // 配置事务管理
+        // 配置事务管理
 	@Bean
 	DataSourceTransactionManager transactionManager(MultiDataSource multiDataSource) {
 		return new DataSourceTransactionManager(multiDataSource);
@@ -97,16 +97,24 @@ import org.springframework.web.bind.annotation.RestController;
 public class PermissionController {
 	@Autowired
 	private PermissonService service;
-
+        // 标记从库,会启用负载均衡
 	@GetMapping("/getPageInfo")
 	@DataSource(slave = true)
 	public Page<Permission> getPageInfo(PermissionQuery param) {
 		return this.service.getPageInfo(param);
 	}
 
+        // 标记主库
 	@GetMapping("/getPageInfo2")
 	@DataSource
 	public Page<Permission> getPageInfo2(PermissionQuery param) {
+		return this.service.getPageInfo(param);
+	}
+	
+	// 标记指定库
+	@GetMapping("/getPageInfo3")
+	@DataSource(value = "slave1")
+	public Page<Permission> getPageInfo(PermissionQuery param) {
 		return this.service.getPageInfo(param);
 	}
 }
