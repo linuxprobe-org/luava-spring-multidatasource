@@ -114,7 +114,7 @@ public class PermissionController {
 	// 标记指定库
 	@GetMapping("/getPageInfo3")
 	@DataSource(value = "slave1")
-	public Page<Permission> getPageInfo(PermissionQuery param) {
+	public Page<Permission> getPageInfo3(PermissionQuery param) {
 		return this.service.getPageInfo(param);
 	}
 }
