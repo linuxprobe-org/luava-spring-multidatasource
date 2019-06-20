@@ -1,7 +1,7 @@
 # luava-spring-multidatasource
 spring多数据源
 # 如何使用
-## 1.maven引入
+## 1. maven引入
 ```
 <dependency>
   <groupId>org.linuxprobe</groupId>
@@ -9,7 +9,7 @@ spring多数据源
   <version>0.0.2.RELEASE</version>
 </dependency>
 ```
-## 2.yml配置
+## 2. yml配置
 ```
 spring:
   datasources:
